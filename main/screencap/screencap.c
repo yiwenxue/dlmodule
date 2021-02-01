@@ -23,7 +23,8 @@ int screencap(int argc, char** argv) {
                 "                You can find it with command \"xdpyinfo\"\n"
                 "        output  The picture you want to store. Figure will redirect\n"
                 "                to stdout if you leave it blank.\n"
-                , argv[0]);
+                "example: %s :0 ./screen.png\n"
+                , argv[0], argv[0]);
     	return 1;
     }
     disp = XOpenDisplay( argv[1] );
@@ -65,7 +66,7 @@ load(int cmd, void *extra){
 
 const struct command_data screencap_data = {
     .name = "screencap",
-    .desc = "fuckyou",
+    .desc = "a simple screen capture tool for xorg (wayland not supported).",
     .evh = screencap,
 };
 

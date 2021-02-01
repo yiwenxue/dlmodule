@@ -15,6 +15,8 @@ extern int inter_ifexit;
 
 int main(int argc, char *argv[])
 {
+
+    welcome();
 #if  debug 
     printf("[main] Launch: Test routine for interpreter + module/command\n");
 #endif
@@ -51,6 +53,7 @@ int main(int argc, char *argv[])
 
         parser(cmd_list_main_hp, cmdline, TBUFFER);
     }
+    printf("\n");
 #if debug 
     printf("\n [inter] Done.\n");
 #endif 

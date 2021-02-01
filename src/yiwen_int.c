@@ -131,13 +131,13 @@ void parser(struct cmd_list_h * cmd_list_hp,
     char argn;
 
     argn = split(cmdline, args, 255);
-/* #if debug */ 
+#if debug 
     printf("  [parser] %d ", argn);
     for (int i=0; i<argn ; i++){
         printf("<%d:%s> ", i, args[i]);
     }
     puts("");
-/* #endif */ 
+#endif 
 
     char fullcmd[1024] = {0};
     for (int i =0; i < argn; i++){
@@ -159,10 +159,9 @@ void parser(struct cmd_list_h * cmd_list_hp,
             }
         }
     }
-
-/* #if debug */ 
+    inter_state = -1;
     printf("  [parser] Command not found: %s\n", cmdline);
-/* #endif */
+
 parser_exit:
     return ;
 }

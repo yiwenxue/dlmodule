@@ -29,12 +29,11 @@ load(int cmd, void *extra){
     switch (cmd){
         case MOD_LOAD:
             history_store = store_hist;
-            mprintf("Hello interpreter, I say loaded!\n");
+            mprintf("Hello interptrter, the commands will be stored as history!\n");
             break;
         case MOD_UNLOAD:
             history_store = history_store_null;
-            break;
-            mprintf("Bye world, I say unloaded!\n");
+            mprintf("Bye interpreter, the latter command will not be stored any more!\n");
             break;
         default:
             error = -1;
