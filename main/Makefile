@@ -1,7 +1,7 @@
 CC= clang
 CFLAGS= -I./ -I../../libyiwen/include/
 LIBS=  -ldl -L../lib/ -lyiwen
-LDFLAGS= ${LIBS}
+LDFLAGS= -g ${LIBS}
 
 module= main
 

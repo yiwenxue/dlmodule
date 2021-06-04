@@ -44,4 +44,3 @@ yiwen_int.o: ${incyiwen} ./src/yiwen_int.c
 
 clean: 
 	rm -rf lib/libyiwen.so ${tempyiwen}
-

@@ -31,35 +31,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #ifndef YIWEN_INTERPRETER
 #define YIWEN_INTERPRETER
+#include <getopt.h>
 #include <stdio.h>
-#include "yiwen_fatal.h"
-#include "command.h"
-#include "module.h"
-#include "yiwen_string.h"
-#include "log.h"
-#include "yiwen_pcolor.h"
 
-#define INT_CMD_BUFFER 255 
+#include "command.h"
+#include "log.h"
+#include "module.h"
+#include "yiwen_fatal.h"
+#include "yiwen_pcolor.h"
+#include "yiwen_string.h"
+
+#define INT_CMD_BUFFER 255
 #define PATH_MAX 255
 
 extern int inter_state;
 extern int inter_ifexit;
 
-int         inter_loop(int (*handle)());
+int inter_loop(int (*handle)());
 
-int         readlinen(char *str, int len);
+int readlinen(char *str, int len);
 
-int         inter_init();
+int inter_init();
 
-int         inter_exit(int argc, char **argv);
-int         inter_help(int argc, char **argv);
-int         inter_run(int argc, char **argv);
+int inter_exit(int argc, char **argv);
+int inter_help(int argc, char **argv);
+int inter_run(int argc, char **argv);
 
-void        show_pwd();
-void        show_time();
-void        show_prompt(char *pmpt);
-void        parser(struct cmd_list_h *, char *cmd, int len);
+void show_pwd();
+void show_time();
+void show_prompt(char *pmpt);
+void parser(struct cmd_list_h *, char *cmd, int len);
 
-void        (*history_store)(char *cmd, int len);
-void        history_store_null(char *cmd, int len);
+void (*history_store)(char *cmd, int len);
+void history_store_null(char *cmd, int len);
+
+struct optdata {
+    char const **descs;
+    char const *descript;
+    struct option *opts;
+};
+
+int print_usage(const int argc, const char **argv, struct optdata data);
+
+void print_version(const unsigned char major, const unsigned char minor,
+                   const unsigned char patch);
+
 #endif

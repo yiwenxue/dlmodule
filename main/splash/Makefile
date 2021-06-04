@@ -1,17 +1,17 @@
 CC= clang
-CFLAGS= -fPIC -I../ -I../../libyiwen/include/ `pkgconf --cflags cairo`
-LIBS=  -ldl -lcairo -lX11 -L../../lib/ -lyiwen `pkgconf --libs cairo`
+CFLAGS= -fPIC -I../ -I../../libyiwen/include/
+LIBS=  -ldl -L../../lib/ -lyiwen
 LDFLAGS= -shared ${LIBS}
 
-module=screencap
+module=splash
 
 all:${module}.ko
 	@echo Module $< generated! 
 
 ${module}.ko:${module}.o
 	${CC} ${LDFLAGS} $< -o $@
-	@ echo "remove trash"
-	@ rm $<
+	@echo "remove trash"
+	@rm $<
 
 ${module}.o:${module}.c
 	${CC} ${CFLAGS} -c $<

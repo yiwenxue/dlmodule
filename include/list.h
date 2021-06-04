@@ -60,15 +60,15 @@ struct name {                                           \
 #define LIST_LAST(head)                                 \
     ((head)->lh_last)
 
-/* Init the list header, just set the pointers to null. 
+/* Init the list header, just set the pointers to null.
  * */
 #define	LIST_INIT(head) do {						    \
     LIST_FIRST((head)) = NULL;					        \
     LIST_LAST((head)) = NULL;                           \
 } while (0)
 
-/* The entry point for each node, it should be embedded into the 
- * data struct. 
+/* The entry point for each node, it should be embedded into the
+ * data struct.
  * */
 #define LIST_ENTRY(type)                                \
 struct {                                                \

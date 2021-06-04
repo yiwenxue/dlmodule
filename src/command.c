@@ -1,36 +1,48 @@
 #include "../include/command.h"
 
+#include <stdio.h>
+
 struct cmd_list_h *cmd_list_main_hp;
 
-int command_env_handle(int cmd, void *extra){
+int command_env_handle(int cmd, void *extra)
+{
     int erro = 0;
 
-    const struct command_data_wrap *wrap = (const struct command_data_wrap *)extra;
-    struct cmd_list_h *cmd_list_hp = cmd_list_main_hp; 
+    const struct command_data_wrap *wrap =
+        (const struct command_data_wrap *)extra;
+    struct cmd_list_h *cmd_list_hp = cmd_list_main_hp;
 
-    if (cmd_list_hp == NULL){
+    if (cmd_list_hp == NULL) {
         erro = -1;
         return erro;
-    }struct command *cmd_module;
+    }
+    struct command *cmd_module;
 
     switch (cmd) {
         case MOD_LOAD:
             erro = cmdload(cmd_list_hp, wrap);
-            /* mprintf("%s installed.\n", wrap->cmd_data->name); */
             break;
         case MOD_UNLOAD:
             cmd_module = cmdseek(cmd_list_hp, wrap->cmd_data->name);
-            if (cmd_module == NULL || cmd_module->handle == NULL){
-                printf("    [command_env_handle] %s module uninit -- handle func not found.\n", cmd_module->name);
+            if (cmd_module == NULL) {
+                return -1;
+            }
+            if (cmd_module->handle == NULL) {
+                printf(
+                    "    [command_env_handle] %s module uninit -- handle func "
+                    "not found.\n",
+                    cmd_module->name);
                 printf("      header addr: %p\n", cmd_list_hp);
-                printf("      cmd module: %p\n"
-                        "        name: %s\n"
-                        "        handle: %p\n"
-                        "        ", cmd_module, cmd_module->name, cmd_module->handle);
+                printf(
+                    "      cmd module: %p\n"
+                    "        name: %s\n"
+                    "        handle: %p\n"
+                    "        ",
+                    cmd_module, cmd_module->name, cmd_module->handle);
                 return -1;
             }
             cmdunload(cmd_list_hp, cmd_module);
-            /* mprintf("%s uninstalled.\n", wrap->cmd_data->name); */
+
             break;
         default:
             erro = -1;
@@ -39,40 +51,49 @@ int command_env_handle(int cmd, void *extra){
     return erro;
 }
 
-struct command *cmdseek(struct cmd_list_h *cmd_list_hp, 
-        const char *name)
+struct command *cmdseek(struct cmd_list_h *cmd_list_hp, const char *name)
 {
-#if debug 
+#if debug
     printf("    [cmdseek] Search the matched cmdmodule.\n");
-#endif 
+#endif
     struct command *var;
-    LIST_FOREACH(var, cmd_list_hp, cmd_list){
-        if (strncmp(var->name, name, 255) == 0){
-            if (var == NULL || var->handle == NULL){
-                printf("    [cmdseek] %s module uninit -- data lost.\n", var->name);
+    LIST_FOREACH(var, cmd_list_hp, cmd_list)
+    {
+        if (var == NULL) {
+            fprintf(stderr, "fatal error found. panic!\n");
+            exit(-1);
+        }
+        if (strncmp(var->name, name, 255) == 0) {
+            if (var->handle == NULL) {
+                printf("    [cmdseek] %s module uninit -- data lost.\n",
+                       var->name);
                 printf("      header addr: %p\n", cmd_list_hp);
-                printf("      cmd module: %p\n"
-                        "        name: %s\n"
-                        "        handle: %p\n"
-                        "        ", var, var->name, var->handle);
+                printf(
+                    "      cmd module: %p\n"
+                    "        name: %s\n"
+                    "        handle: %p\n"
+                    "        ",
+                    var, var->name, var->handle);
                 return NULL;
             }
             return var;
         }
     }
-#if debug 
+#if debug
     printf("    [cmdseek] the module %s not found!\n", name);
-#endif 
+#endif
 
     return NULL;
 }
 
-int cmdload(struct cmd_list_h *cmd_list_hp, const struct command_data_wrap *wrap){
-#if debug 
+int cmdload(struct cmd_list_h *cmd_list_hp,
+            const struct command_data_wrap *wrap)
+{
+#if debug
     printf("    [cmdload] Run the load routine.\n");
-#endif 
+#endif
     struct command *cmd = cmdfetch(wrap);
-    if (cmd == NULL){
+    if (cmd == NULL) {
         fprintf(stderr, "Fetch command failed!\n");
         return -1;
     }
@@ -84,80 +105,90 @@ int cmdload(struct cmd_list_h *cmd_list_hp, const struct command_data_wrap *wrap
     return 0;
 }
 
-int cmdunload(struct cmd_list_h * cmd_list_hp,
-        struct command *cmd)
+int cmdunload(struct cmd_list_h *cmd_list_hp, struct command *cmd)
 {
-#if debug 
+#if debug
     printf("    [cmdunload] Run the unload routine.\n");
-#endif 
-    if (cmd == NULL){
+#endif
+    if (cmd == NULL) {
         fprintf(stderr, "On unload command: cmd points to NULL.\n");
         return -1;
     }
-    if (cmd == NULL || cmd->handle == NULL){
+    if (cmd == NULL || cmd->handle == NULL) {
         printf("    [cmdunload] %s module uninit -- data lost.\n", cmd->name);
-        printf("      cmd module:\n"
-               "        name: %s\n"
-               "        handle: %p\n"
-               "        ", cmd->name, cmd->handle);
+        printf(
+            "      cmd module:\n"
+            "        name: %s\n"
+            "        handle: %p\n"
+            "        ",
+            cmd->name, cmd->handle);
         return -1;
     }
     int erro = cmduninit(cmd);
-    if (cmdpop(cmd_list_hp, cmd) != 0){
-        fprintf(stderr, "On unload command: can't remove from list normally.\n");
+    if (cmdpop(cmd_list_hp, cmd) != 0) {
+        fprintf(stderr,
+                "On unload command: can't remove from list normally.\n");
         return -2;
     }
     cmdfree(cmd);
     return 0;
 }
 
-int cmdinit(struct command *cmd){
-#if debug 
+int cmdinit(struct command *cmd)
+{
+#if debug
     printf("    [cmdinit] Run the init routine.\n");
-#endif 
+#endif
     int erro = cmd->handle(MOD_LOAD, cmd->handle_args);
-    if (erro != 0){
+    if (erro != 0) {
         printf("    [cmdinit] %s module init faild.\n", cmd->name);
     }
     return erro;
 }
 
-int cmduninit(struct command *cmd){
-#if debug 
+int cmduninit(struct command *cmd)
+{
+#if debug
     printf("    [cmduninit] Run the uninit routine.\n");
-#endif 
-    if (cmd == NULL || cmd->handle == NULL){
-        printf("    [cmduninit] %s module uninit -- handle func not found.\n", cmd->name);
-        printf("      cmd module:\n"
-               "        name: %s\n"
-               "        handle: %p\n"
-               "        ", cmd->name, cmd->handle);
+#endif
+    if (cmd == NULL) {
+        fprintf(stderr, "fatal erro found: input cmd may be over written.");
+        return -1;
+    }
+    if (cmd->handle == NULL) {
+        printf("    [cmduninit] %s module uninit -- handle func not found.\n",
+               cmd->name);
+        printf(
+            "      cmd module:\n"
+            "        name: %s\n"
+            "        handle: %p\n"
+            "        ",
+            cmd->name, cmd->handle);
         return -1;
     }
     int erro = cmd->handle(MOD_UNLOAD, cmd->handle_args);
-    if (erro != 0){
+    if (erro != 0) {
         printf("    [cmduninit] %s module uninit faild.\n", cmd->name);
     }
     return erro;
 }
 
-int cmdappend(struct cmd_list_h *cmd_list_hp, 
-        struct command *cmd)
+int cmdappend(struct cmd_list_h *cmd_list_hp, struct command *cmd)
 {
     LIST_INSERT_TAIL(cmd_list_hp, cmd, cmd_list);
     return 0;
 }
 
-int cmdpop(struct cmd_list_h *cmd_list_hp,
-        struct command *cmd)
+int cmdpop(struct cmd_list_h *cmd_list_hp, struct command *cmd)
 {
     LIST_REMOVE(cmd, cmd_list_hp, command, cmd_list);
     return 0;
 }
 
-struct command *cmdfetch(const struct command_data_wrap *wrap){
+struct command *cmdfetch(const struct command_data_wrap *wrap)
+{
     const struct command_data *cmd_data = wrap->cmd_data;
-    struct command * cmd = (command_t *) malloc(sizeof(command_t));
+    struct command *cmd = (command_t *)malloc(sizeof(command_t));
 
     cmd->commanddata = cmd_data;
     cmd->desc = cmd_data->desc;
@@ -168,10 +199,11 @@ struct command *cmdfetch(const struct command_data_wrap *wrap){
     return cmd;
 }
 
-int cmdfree(struct command *cmd){
-#if debug 
+int cmdfree(struct command *cmd)
+{
+#if debug
     printf("    [cmdfree] Run the cmdfree routine.\n");
-#endif 
+#endif
     free(cmd);
     return 0;
 }

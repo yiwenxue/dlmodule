@@ -3,6 +3,10 @@ Document and designs of my dynamically loadable module (based on BSD kernel modu
 
 To make something dynamically loadable, you will need a dynamic data structure at first. For the modules, I use doubly linked list written by myself `include/list.h`. Queue and stack are not good choices.
 
+## Screenshots
+![main](./main.png)
+![screen](./screen.png)
+
 ## Dynamically loadable module
 When you want to create a module, you must have a purpose, then you will need a **function** to make it. At the same time, you will also need some data or information to tell your function where and when it should operate. 
 

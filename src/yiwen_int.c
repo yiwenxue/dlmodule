@@ -3,27 +3,29 @@
 int inter_state = 0;
 int inter_ifexit = 0;
 
-int inter_init(){
+int inter_init()
+{
     history_store = history_store_null;
     return 0;
 }
 
 int readlinen(char *str, int len)
 {
-    int i=0;
+    int i = 0;
     char chr = 0;
     while (1) {
-        if (i >= len){
-            while ((fgetc(stdin)) != '\n');
+        if (i >= len) {
+            while ((fgetc(stdin)) != '\n')
+                ;
             warning("Warning: Input line is larger than the buffer");
             break;
         }
         chr = fgetc(stdin);
         str[i] = chr;
-        if (!(chr - '\n')){
+        if (!(chr - '\n')) {
             break;
         }
-        if (chr == EOF){
+        if (chr == EOF) {
             return -1;
         }
         i++;
@@ -32,47 +34,54 @@ int readlinen(char *str, int len)
     return i;
 }
 
-void show_pwd(){
-   char cwd[PATH_MAX];
-   if (getcwd(cwd, PATH_MAX) != NULL) {
-       printf("%s", cwd);
-   }
+void show_pwd()
+{
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, PATH_MAX) != NULL) {
+        printf("%s", cwd);
+    }
 }
 
-void show_time(){
-    timestamp_std(stdout);
-}
+void show_time() { timestamp_std(stdout); }
 
-void show_shellstate(){
+void show_shellstate()
+{
     if (inter_state == 0)
-        printf(C_GREEN"Y"C_DEFAULT);
+        printf(C_GREEN "Y" C_DEFAULT);
     else
-        printf(C_RED"N"C_DEFAULT);
+        printf(C_RED "N" C_DEFAULT);
 }
 
-void show_prompt(char *pmpt){
+void show_prompt(char *pmpt)
+{
     int len = strlen(pmpt);
-    int i=0;
-    while (i < len){
-        if(pmpt[i++] == '%'){
-            if (pmpt[i] == 'd'){
+    int i = 0;
+    while (i < len) {
+        if (pmpt[i++] == '%') {
+            if (pmpt[i] == 'd') {
                 show_pwd();
-            } else if (pmpt[i] == 't'){
+            }
+            else if (pmpt[i] == 't') {
                 show_time();
-            } else if (pmpt[i] == 's'){
+            }
+            else if (pmpt[i] == 's') {
                 show_shellstate();
             }
             i++;
-        } else {
-            putc(pmpt[i-1], stdout);
+        }
+        else {
+            putc(pmpt[i - 1], stdout);
         }
     }
 }
 
-int inter_run(int argc, char **argv){
-    if (argc < 2){
-        printf("Usage:\n"
-                "  <%s>    <bash command>\n", argv[0]);
+int inter_run(int argc, char **argv)
+{
+    if (argc < 2) {
+        printf(
+            "Usage:\n"
+            "  <%s>    <bash command>\n",
+            argv[0]);
         return -1;
     }
     char cmd[INT_CMD_BUFFER] = {0};
@@ -86,39 +95,48 @@ int inter_run(int argc, char **argv){
     return 0;
 }
 
-int inter_help(int argc, char **argv){
+int inter_help(int argc, char **argv)
+{
     extern struct cmd_list_h *cmd_list_main_hp;
-    if (argc == 1){
+    if (argc == 1) {
         printf("Usage:\n");
         struct command *var;
-        LIST_FOREACH(var, cmd_list_main_hp, cmd_list){
+        LIST_FOREACH(var, cmd_list_main_hp, cmd_list)
+        {
             printf("    %-10s   %s\n", var->name, var->desc);
         }
-    } else if (argc == 2){
-        if (strncmp(argv[1], "help", 4) == 0 || strncmp(argv[1], "-h", 2) == 0){
-            printf("Usage:\n"
-                    "   <%s>    command      show the help information of a specific command.\n"
-                    "             -h | help    show this help page.\n",
-                    argv[0]);
-        } else {
+    }
+    else if (argc == 2) {
+        if (strncmp(argv[1], "help", 4) == 0 ||
+            strncmp(argv[1], "-h", 2) == 0) {
+            printf(
+                "Usage:\n"
+                "   <%s>    command      show the help information of a "
+                "specific command.\n"
+                "             -h | help    show this help page.\n",
+                argv[0]);
+        }
+        else {
             struct command *var;
-            LIST_FOREACH(var, cmd_list_main_hp, cmd_list){
+            LIST_FOREACH(var, cmd_list_main_hp, cmd_list)
+            {
                 if (strncmp(var->name, argv[1], strlen(argv[1])) == 0)
-                    var->commanddata->evh(1, argv+1);
+                    var->commanddata->evh(1, argv + 1);
             }
         }
     }
     return 0;
 }
 
-int inter_exit(int argc, char **argv){
+int inter_exit(int argc, char **argv)
+{
     inter_ifexit = 1;
     return 0;
 }
 
-void parser(struct cmd_list_h * cmd_list_hp,
-        char *cmd, int len){
-    if (strlen(cmd) == 0){
+void parser(struct cmd_list_h *cmd_list_hp, char *cmd, int len)
+{
+    if (strlen(cmd) == 0) {
         inter_state = -1;
         goto parser_exit;
     }
@@ -131,26 +149,27 @@ void parser(struct cmd_list_h * cmd_list_hp,
     char argn;
 
     argn = split(cmdline, args, 255);
-#if debug 
+#if debug
     printf("  [parser] %d ", argn);
-    for (int i=0; i<argn ; i++){
+    for (int i = 0; i < argn; i++) {
         printf("<%d:%s> ", i, args[i]);
     }
     puts("");
-#endif 
+#endif
 
     char fullcmd[1024] = {0};
-    for (int i =0; i < argn; i++){
+    for (int i = 0; i < argn; i++) {
         strcat(fullcmd, args[i]);
         strcat(fullcmd, " ");
     }
 
     history_store(fullcmd, strnlen(fullcmd, 1024));
 
-    if (argn != 0){
+    if (argn != 0) {
         struct command *var;
-        LIST_FOREACH(var, cmd_list_hp, cmd_list){
-            if (strncmp(var->name, args[0], 255) == 0){
+        LIST_FOREACH(var, cmd_list_hp, cmd_list)
+        {
+            if (strncmp(var->name, args[0], 255) == 0) {
                 inter_state = var->commanddata->evh(argn, args);
                 /* if (var->handle == NULL || var->commanddata == NULL){ */
                 /*     printf("    [cmd] data lost here!!\n"); */
@@ -163,9 +182,31 @@ void parser(struct cmd_list_h * cmd_list_hp,
     printf("  [parser] Command not found: %s\n", cmdline);
 
 parser_exit:
-    return ;
+    return;
 }
 
-void history_store_null(char *cmd, int len){
+void history_store_null(char *cmd, int len) {}
 
+int print_usage(const int argc, const char **argv, struct optdata data)
+{
+    printf(
+        "Usage: \n %s <opt> <arg>\n"
+        "%s\n",
+        argv[0], data.descript);
+    int i = 0;
+    while (1) {
+        if (data.opts[i].name != NULL)
+            printf("\t-%c, --%-15s    %s\n", data.opts[i].val,
+                   data.opts[i].name, data.descs[i]);
+        else
+            break;
+        i++;
+    }
+    return 0;
+}
+
+void print_version(const unsigned char major, const unsigned char minor,
+                   const unsigned char patch)
+{
+    fprintf(stdout, "VERSION: %d.%d.%d\n", major, minor, patch);
 }
